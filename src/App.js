@@ -19,14 +19,12 @@ function App() {
   } = useWhisper({
     apiKey: process.env.REACT_APP_OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
     whisperConfig: {
-      prompt: 'You are a robotics expert',
+      prompt: 'transcribe',
     },
   });
   const [formValue, setFormValue] = useState('');
   const [messages, setMessages] = useState([]);
   const [recordingStatus, setRecordingStatus] = useState(false); // New state variable
-  // State variable to keep track of chat history
-  const [chatHistory, setChatHistory] = useState([]);
   const messageRef = useRef(null);
 
   // Callback to scroll to current message when a new one is displayed.
@@ -41,47 +39,40 @@ function App() {
     }
   }, [transcript.text]);
 
-  const apiKey = 'VF.DM.649b53033c363c00077761c8.hKA3shSTFue9dEfl';
+  const apiKey = process.env.REACT_APP_OPENAI_API_TOKEN;
 
   const userID = useMemo(() => cuid(), []);
-  const sessionId = useMemo(() => cuid(), []); // Generate a unique Session ID using the `cuid` library
 
-  // Handle voiceflow request.
-  async function voiceflowInteract(body) {
-    // Send request.
-    const response = await axios({
-      method: 'POST',
-      baseURL: 'https://general-runtime.voiceflow.com',
-      url: `/state/user/${userID}/interact`,
-      headers: {
-        Authorization: apiKey,
-      },
-      data: body,
-    });
+// Handle voiceflow request.
+async function voiceflowInteract(body) {
+  // Send request.
+  const response = await axios({
+    method: 'POST',
+    baseURL: 'https://general-runtime.voiceflow.com',
+    url: `/state/user/${userID}/interact`,
+    headers: {
+      Authorization: apiKey,
+    },
+    data: body,
+  });
 
-     // Add user input to chat history
-     setChatHistory((prevChat) => [
-      ...prevChat,
-      { sessionId, message: body.action.payload, type: 'user', timestamp: new Date().toISOString() },
-    ]);
+  console.log(response);
 
-    console.log(response);
-
-    // Add the response(s) to messages.
-    for (let datIndex in response.data) {
-      const data = response.data[datIndex];
-      if (data.payload && data.payload.message) {
-        const message = data.payload.message;
-        setChatHistory((prevChat) => [
-          ...prevChat,
-          { sessionId, message, type: 'bot', timestamp: new Date().toISOString() },
-        ]);
-        console.log(message);
-        setMessages((prev) => [
-          ...prev,
-          { id: prev.length, text: message, type: 'bot' },
-        ]);
-        const audioUrl = await convertTextToAudio(message);
+  // Add the response(s) to messages.
+  for (let datIndex in response.data) {
+    const data = response.data[datIndex];
+    if (data.payload && data.payload.message) {
+      const message = data.payload.message;
+      console.log(message);
+      const splitMessage = message.split('###');
+      const textToDisplay = splitMessage.join(' ').trim();
+      const textToConvert = splitMessage[1]?.trim();
+      setMessages((prev) => [
+        ...prev,
+        { id: prev.length, text: textToDisplay, type: 'bot' },
+      ]);
+      if (textToConvert) {
+        const audioUrl = await convertTextToAudio(textToConvert);
         setMessages((prev) => [
           ...prev,
           { id: prev.length, audioUrl: audioUrl, type: 'bot' },
@@ -89,9 +80,10 @@ function App() {
       }
     }
   }
+}
 
   async function convertTextToAudio(text) {
-    const voiceId = 'Zxx3frQMtWHOosssmTUz';
+    const voiceId = '3e0p11OCF95Sr2Lxf92W';
     const apiKey = '15d129edbdd10b7c93370d2191a68f0f';
     const response = await axios({
       method: 'POST',
@@ -103,6 +95,7 @@ function App() {
       },
       data: {
         text: text,
+        model_id: "eleven_multilingual_v1",
         voice_settings: {
           stability: 0.4,
           similarity_boost: 0.7,
@@ -120,12 +113,6 @@ function App() {
     e.preventDefault();
 
     const text = formValue;
-
-    // Add user input to chat history
-    setChatHistory((prevChat) => [
-      ...prevChat,
-      { sessionId, message: text, type: 'user', timestamp: new Date().toISOString() },
-    ]);
 
     setMessages((prev) => [
       ...prev,
@@ -163,30 +150,6 @@ function App() {
     }
   }, [recording, transcribing]);
 
-  // Function to convert chat history data to CSV format
-  function convertToCSV(data) {
-    const csvRows = [];
-    csvRows.push(['Session ID'| 'Message'| 'Type'| 'Timestamp']);
-    data.forEach((entry) => {
-      const csvRow = [entry.sessionId, entry.message, entry.type, entry.timestamp].join('~');
-      csvRows.push(csvRow);
-    });
-    return csvRows.join('\n');
-  }
-
-  // Function to download the CSV file
-  function downloadCSV() {
-    const csvData = convertToCSV(chatHistory);
-    const blob = new Blob([csvData], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'chat_history.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
   // Display content.
   return (
     <div className="App">
@@ -219,7 +182,7 @@ function App() {
             value={formValue}
             onChange={(e) => setFormValue(e.target.value)}
             placeholder={
-              recordingStatus ? 'Recording...' : transcribing ? 'Transcribing...' : 'Speak with Hiro'
+              recordingStatus ? 'Recording...' : transcribing ? 'Transcribing...' : 'Speak with your translator'
             }
           />
 
@@ -234,40 +197,11 @@ function App() {
           <button className="stop-button" onClick={() => stopRecording()}>
             Stop
           </button>
-          <button className="download-button" onClick={downloadCSV}>
-            Download Chat History (CSV)
-          </button>
         </div>
       </footer>
     </div>
   );
 }
-
-// const MenuOverlay = () => {
-//   const [showOverlay, setShowOverlay] = useState(false);
-
-//   const handleButtonClick = () => {
-//     setShowOverlay(true);
-//   }
-
-//   const handleOverlayClick = () => {
-//     setShowOverlay(false);
-//   }
-
-//   return (
-//     <div className="menu-overlay">
-//       <button className="menu-button" onClick={handleButtonClick}>
-//         <img src={menuIcon} alt="menu" />
-//       </button>
-
-//       {showOverlay &&
-//         <div className="overlay" onClick={handleOverlayClick}>
-//           <img src="https://dkdoes.us/wp-content/uploads/2023/05/DKDiner.png" alt="overlay" />
-//         </div>
-//       }
-//     </div>
-//   );
-// }
 
 // Create frontend for chat message.
 function ChatMessage(props) {
@@ -276,9 +210,9 @@ function ChatMessage(props) {
   if (type === 'bot') {
     return (
       <div className={`message ${type}`}>
-        {text && <img src="https://dkdoes.us/wp-content/uploads/2023/07/hiro.png" alt="" />}
+        {text && <img src="https://dkdoes.us/wp-content/uploads/2020/08/IMG_4484-scaled.jpg" alt="" />}
         {text && <p>{text}</p>}
-        {audioUrl && <audio src={audioUrl} autoPlay />}
+        {audioUrl && <audio src={audioUrl} controls />}
       </div>
     );
   }
