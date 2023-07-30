@@ -1,0 +1,24 @@
+{
+  "files": {
+    "main.css": "/dkdiner/static/css/main.3ef9a3d9.css",
+    "main.js": "/dkdiner/static/js/main.3beb4a99.js",
+    "static/js/531.9210023b.chunk.js": "/dkdiner/static/js/531.9210023b.chunk.js",
+    "static/js/586.19973431.chunk.js": "/dkdiner/static/js/586.19973431.chunk.js",
+    "static/js/193.4b600870.chunk.js": "/dkdiner/static/js/193.4b600870.chunk.js",
+    "static/js/213.5172ee66.chunk.js": "/dkdiner/static/js/213.5172ee66.chunk.js",
+    "static/js/914.0287ec90.chunk.js": "/dkdiner/static/js/914.0287ec90.chunk.js",
+    "index.html": "/dkdiner/index.html",
+    "static/media/SendButton.svg": "/dkdiner/static/media/SendButton.be31d0487447350f43949914bd007679.svg",
+    "main.3ef9a3d9.css.map": "/dkdiner/static/css/main.3ef9a3d9.css.map",
+    "main.3beb4a99.js.map": "/dkdiner/static/js/main.3beb4a99.js.map",
+    "531.9210023b.chunk.js.map": "/dkdiner/static/js/531.9210023b.chunk.js.map",
+    "586.19973431.chunk.js.map": "/dkdiner/static/js/586.19973431.chunk.js.map",
+    "193.4b600870.chunk.js.map": "/dkdiner/static/js/193.4b600870.chunk.js.map",
+    "213.5172ee66.chunk.js.map": "/dkdiner/static/js/213.5172ee66.chunk.js.map",
+    "914.0287ec90.chunk.js.map": "/dkdiner/static/js/914.0287ec90.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.3ef9a3d9.css",
+    "static/js/main.3beb4a99.js"
+  ]
+}
